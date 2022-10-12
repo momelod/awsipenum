@@ -3,7 +3,6 @@
 import argparse
 import botocore
 import boto3
-import json
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -14,25 +13,33 @@ parser.add_argument(
 )
 parser.add_argument(
     '-p', '--profile',
-    help='manually choose a profile',
+    help='choose a single profile',
+    action='store'
+)
+parser.add_argument(
+    '-r', '--region',
+    help='choose a single region',
     action='store'
 )
 args = parser.parse_args()
 
 
-def msg(stat, msg):
-    class bcolors:
-        HEADER = '\033[95m'
-        OKBLUE = '\033[94m'
-        OKCYAN = '\033[96m'
-        OKGREEN = '\033[92m'
-        WARNING = '\033[93m'
-        FAIL = '\033[91m'
-        ENDC = '\033[0m'
-        BOLD = '\033[1m'
-        UNDERLINE = '\033[4m'
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
+
+def msg(stat, msg):
     if args.debug:
+        if stat == "hdr":
+            print(f"{bcolors.HEADER}" + msg + f"{bcolors.ENDC}")
         if stat == "ok":
             print(f"{bcolors.OKGREEN}" + msg + f"{bcolors.ENDC}")
         if stat == "warn":
@@ -45,6 +52,8 @@ def msg(stat, msg):
 
 
 def profiles_check():
+    msg("info", "\n")
+    msg("hdr", "Validating profiles ..")
     profiles_list = []
 
     if args.profile:
@@ -55,12 +64,12 @@ def profiles_check():
     for p in profiles_available:
         msg("info", "[" + p + "]: ")
         session = boto3.session.Session(profile_name=p)
-        client = session.client(
+        sts = session.client(
             service_name='sts'
         )
         try:
-            profile = client.get_caller_identity()
-            msg("ok", "Validated")
+            profile = sts.get_caller_identity()
+            msg("ok", "Profile Validated")
         except botocore.exceptions.ClientError:
             profile = False
             msg("warn", "ClientError")
@@ -88,9 +97,71 @@ def profiles_check():
         return profiles_list
 
 
-for p in profiles_check():
-    session = boto3.session.Session(profile_name=p)
+def regions(p):
+    msg("info", "\n")
+    msg("hdr", "Validating region access ..")
+    list = []
+    region_enabled = []
+
+    if args.region:
+        list = [args.region]
+    else:
+        session = boto3.session.Session(profile_name=p)
+        ec2 = session.client('ec2')
+        regions = ec2.describe_regions()
+
+        for r in regions['Regions']:
+            list.append(r['RegionName'])
+
+    for r in list:
+        msg("info", "[" + p + "]" + "[" + r + "]: ")
+        sts = session.client('sts', region_name=r)
+        try:
+            check = sts.get_caller_identity()
+        except botocore.exceptions.ClientError:
+            check = False
+
+        if check:
+            msg("ok", "Region Enabled")
+            region_enabled.append(r)
+        else:
+            msg("warn", "RegionDisabledException")
+
+        msg("info", "")
+
+    return region_enabled
+
+
+def enum_ec2(p, r):
+    session = boto3.session.Session(profile_name=p, region_name=r)
     ec2 = session.client('ec2')
-    result = ec2.describe_regions(RegionNames=['us-east-1'])
-    json_string = json.dumps(result, indent=2)
-    print(json_string)
+    msg("info", "\n")
+    msg("info", "[" + p + "]" + "[" + r + "]: ")
+    try:
+        result = ec2.describe_instances()
+    except botocore.errorfactory.ClientError:
+        result = False
+
+    if result:
+        msg("hdr", "Enermerating Public IPs ..")
+        for reservation in result['Reservations']:
+            for instance in reservation['Instances']:
+                if instance.get(u'PublicIpAddress') is not None:
+                    print('%s %s' %
+                          (instance['InstanceId'],
+                           instance.get(u'PublicIpAddress'))
+                          )
+
+    else:
+        msg("warn", "RegionDisabledException")
+
+
+def main():
+
+    profile_list = profiles_check()
+    for p in profile_list:
+        for r in regions(p):
+            enum_ec2(p, r)
+
+
+main()
