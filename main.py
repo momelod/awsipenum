@@ -39,11 +39,13 @@ class bcolors:
 def msg(stat, msg):
     if args.debug:
         if stat == "hdr":
-            print(f"{bcolors.HEADER}" + msg + f"{bcolors.ENDC}")
+            print('%s%s%s' % (f"{bcolors.HEADER}", msg, f"{bcolors.ENDC}"))
         if stat == "ok":
-            print(f"{bcolors.OKGREEN}" + msg + f"{bcolors.ENDC}")
+            print('%s%s%s' % (f"{bcolors.OKGREEN}", msg, f"{bcolors.ENDC}"))
+        if stat == "ko":
+            print('%s%s%s' % (f"{bcolors.OKBLUE}", msg, f"{bcolors.ENDC}"))
         if stat == "warn":
-            print(f"{bcolors.WARNING}" + msg + f"{bcolors.ENDC}")
+            print('%s%s%s' % (f"{bcolors.WARNING}", msg, f"{bcolors.ENDC}"))
         if stat == "info":
             print(f"{bcolors.ENDC}" + msg, end='')
 
@@ -135,6 +137,7 @@ def regions(p):
 def enum_ec2(p, r):
     session = boto3.session.Session(profile_name=p, region_name=r)
     ec2 = session.client('ec2')
+    count = 0
     msg("info", "\n")
     msg("info", "[" + p + "]" + "[" + r + "]: ")
     try:
@@ -147,13 +150,23 @@ def enum_ec2(p, r):
         for reservation in result['Reservations']:
             for instance in reservation['Instances']:
                 if instance.get(u'PublicIpAddress') is not None:
-                    print('%s %s' %
-                          (instance['InstanceId'],
-                           instance.get(u'PublicIpAddress'))
-                          )
+                    count += 1
+                    id = instance['InstanceId']
+                    ip = instance['PublicIpAddress']
+                    vpc = instance['VpcId']
+                    tags = instance['Tags']
 
+                    for t in tags:
+                        if t['Key'] == 'Name':
+                            name = t['Value']
+
+                    finding = vpc + " " + name + " " + id + " "
+                    msg("info", finding)
+                    print(ip)
     else:
         msg("warn", "RegionDisabledException")
+
+    msg("ko", "Found: " + str(count))
 
 
 def main():
