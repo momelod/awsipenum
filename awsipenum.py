@@ -2,9 +2,7 @@
 
 import argparse
 import ec2enum
-import msg
 
-msg = msg.msg
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -26,7 +24,12 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-profile_list = ec2enum.profiles_check(args.profile, args.debug)
-for p in profile_list:
-    for r in ec2enum.regions(p, args.region, args.debug):
-        ec2enum.enum_ec2(p, r, args.debug)
+def main():
+    profile_list = ec2enum.profiles_check(args.profile, args.debug)
+    for p in profile_list:
+        for r in ec2enum.regions(p, args.region, args.debug):
+            ec2enum.enum_ec2(p, r, args.debug)
+
+
+if __name__ == "__main__":
+    main()
