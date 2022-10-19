@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
-import ec2enum
+from . import ec2enum
 
 
 parser = argparse.ArgumentParser()

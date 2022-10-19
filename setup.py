@@ -1,21 +1,20 @@
-from setuptools import setup
-import pathlib
-
-here = pathlib.Path(__file__).parent.resolve()
-
-install_requires = (here / 'requirements.txt').read_text(encoding='utf-8').splitlines()
+from setuptools import setup, find_packages
 
 setup(
-    install_requires=install_requires,
+    install_requires=[
+        'boto3 >= 1.24.89',
+        'botocore >= 1.27.89'
+    ],
     name='awsipenum',
     version='0.1',
     description='List your AWS public IPs',
     author='Steve Melo',
     author_email='momelod@gmail.com',
-    url='https://github.com/momelod',
-    py_modules=[
-        'awsipenum',
-        'ec2enum',
-        'msg'
-    ],
+    url='https://github.com/momelod/awsipenum',
+    packages=find_packages(),
+    entry_points={
+        'console_scripts': [
+            'awsipenum = awsipenum:main'
+        ]
+    }
 )

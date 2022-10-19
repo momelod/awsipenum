@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-
 import botocore
 import boto3
-import msg
+from . import msg
 
 msg = msg.msg
 
@@ -58,11 +56,11 @@ def regions(p: str, r: str, debug: bool):
     msg("hdr", "Validating region access ..", debug)
     list = []
     region_enabled = []
+    session = boto3.session.Session(profile_name=p)
 
     if r:
         list = [r]
     else:
-        session = boto3.session.Session(profile_name=p)
         ec2 = session.client('ec2')
         regions = ec2.describe_regions()
 
@@ -107,17 +105,27 @@ def enum_ec2(p: str, r: str, debug: bool):
                     count += 1
                     id = instance['InstanceId']
                     ip = instance['PublicIpAddress']
-                    vpc = instance['VpcId']
                     tags = instance['Tags']
+                    vpc = instance['VpcId']
 
                     for t in tags:
                         if t['Key'] == 'Name':
                             name = t['Value']
 
-                    finding = vpc + " " + name + " " + id + " "
-                    msg("info", finding, debug)
-                    print(ip)
+                    finding.id = id
+                    finding.ip = ip
+                    finding.name = name
+                    finding.vpc = vpc
+                    print(finding.ip)
     else:
         msg("warn", "RegionDisabledException", debug)
 
     msg("ko", "Found: " + str(count), debug)
+
+
+class finding:
+    def __init__(self):
+        self.id = ""
+        self.ip = ""
+        self.name = ""
+        self.vpc = ""
