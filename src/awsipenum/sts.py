@@ -20,6 +20,10 @@ def profiles_check(p: str):
     for p in profiles_available:
         msg.info("[" + p + "]: ")
         session = boto3.session.Session(profile_name=p)
+
+        if session.region_name is None:
+            msg.fatal("AWS_DEFAULT_REGION is undefined")
+
         sts = session.client(
             service_name='sts'
         )

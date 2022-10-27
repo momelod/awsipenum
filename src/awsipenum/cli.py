@@ -23,29 +23,30 @@ def create_parser():
     )
     parser.add_argument(
         '-f', '--format',
+        choices=["json", "yaml"],
         default='json',
-        help='choose a single region'
+        help='output format'
     )
     parser.add_argument(
-        '-v4', '--ipv4',
+        '--ipv4',
         help='enable ipv4',
         default=True,
         action=BooleanOptionalAction
     )
     parser.add_argument(
-        '-v6', '--ipv6',
+        '--ipv6',
         help='enable ipv6',
         default=True,
         action=BooleanOptionalAction
     )
     parser.add_argument(
-        '-e', '--external',
+        '--external',
         help='enable external public ips',
         default=True,
         action=BooleanOptionalAction
     )
     parser.add_argument(
-        '-i', '--internal',
+        '--internal',
         help='enable internal private ips',
         default=True,
         action=BooleanOptionalAction
