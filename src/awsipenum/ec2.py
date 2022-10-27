@@ -14,7 +14,7 @@ def regions(p: str, r: str):
     session = boto3.session.Session(profile_name=p)
 
     if r:
-        list = [r]
+        list = r
     else:
         client = session.client('ec2')
         regions = client.describe_regions()

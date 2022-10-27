@@ -13,7 +13,7 @@ def profiles_check(p: str):
     profiles_list = []
 
     if p:
-        profiles_available = [p]
+        profiles_available = p
     else:
         profiles_available = boto3.session.Session().available_profiles
 

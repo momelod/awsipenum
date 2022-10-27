@@ -13,11 +13,13 @@ def create_parser():
     )
     parser.add_argument(
         '-p', '--profile',
+        nargs='+',
         default=False,
         help='choose a single profile'
     )
     parser.add_argument(
         '-r', '--region',
+        nargs='+',
         default=False,
         help='choose a single region'
     )
