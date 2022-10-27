@@ -5,12 +5,17 @@ with open('README.md', encoding='UTF-8') as f:
 
 setup(
     name='awsipenum',
-    version='0.1.0',
+    version='0.2.0',
     description='List your AWS public IPs',
     author='Steve Melo',
     author_email='momelod@gmail.com',
     url='https://github.com/momelod/awsipenum',
-    install_requires=['boto3'],
+    install_requires=[
+        'boto3',
+        'botocore',
+        'pyaml',
+        'requests',
+    ],
     packages=find_packages('src'),
     package_dir={'': 'src'},
     entry_points={

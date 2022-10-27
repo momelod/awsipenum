@@ -1,10 +1,11 @@
+import boto3
+import botocore
+from awsipenum import msg
+
 debug = False
 
 
 def profiles_check(p: str):
-    import boto3
-    import botocore
-    from awsipenum import msg
 
     msg.debug = debug
     msg.info("\n")
