@@ -1,34 +1,42 @@
+import sys
+
 debug = False
 
 
 def hdr(msg: str):
     if debug:
-        print('%s%s%s' % (f"{bcolors.HEADER}", msg, f"{bcolors.ENDC}"))
+        print('%s%s%s' % (f"{bcolors.HEADER}", msg, f"{bcolors.ENDC}"),
+              file=sys.stderr)
 
 
 def ok(msg: str):
     if debug:
-        print('%s%s%s' % (f"{bcolors.OKGREEN}", msg, f"{bcolors.ENDC}"))
+        print('%s%s%s' % (f"{bcolors.OKGREEN}", msg, f"{bcolors.ENDC}"),
+              file=sys.stderr)
 
 
 def ko(msg: str):
     if debug:
-        print('%s%s%s' % (f"{bcolors.OKBLUE}", msg, f"{bcolors.ENDC}"))
+        print('%s%s%s' % (f"{bcolors.OKBLUE}", msg, f"{bcolors.ENDC}"),
+              file=sys.stderr)
 
 
 def warn(msg: str):
     if debug:
-        print('%s%s%s' % (f"{bcolors.WARNING}", msg, f"{bcolors.ENDC}"))
+        print('%s%s%s' % (f"{bcolors.WARNING}", msg, f"{bcolors.ENDC}"),
+              file=sys.stderr)
 
 
 def info(msg: str):
     if debug:
-        print(f"{bcolors.ENDC}" + msg, end='')
+        print(f"{bcolors.ENDC}" + msg, end='',
+              file=sys.stderr)
 
 
 def fatal(msg: str):
     if debug:
-        print(f"{bcolors.FAIL}" + msg + f"{bcolors.ENDC}")
+        print(f"{bcolors.FAIL}" + msg + f"{bcolors.ENDC}",
+              file=sys.stderr)
 
 
 class bcolors:
