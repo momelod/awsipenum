@@ -118,7 +118,7 @@ Validating region access ..
 ]
 ```
 
-Only show public IP v4"
+Only show public IP v4
 ```bash
 awsipenum -p default --region us-east-1 --no-ipv6 --no-internal
 [
@@ -126,7 +126,7 @@ awsipenum -p default --region us-east-1 --no-ipv6 --no-internal
     "1.2.3.5",
     "1.2.3.6",
     "1.2.3.7",
-    "1.2.3.8",
+    "1.2.3.8"
 ]
 ```
 
