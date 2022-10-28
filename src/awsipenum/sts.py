@@ -1,11 +1,12 @@
 import boto3
 import botocore
+import sys
 from awsipenum import msg
 
 debug = False
 
 
-def profiles_check(p: str):
+def profiles_check(p: list):
 
     msg.debug = debug
     msg.info("\n")
@@ -52,6 +53,6 @@ def profiles_check(p: str):
 
     if not profiles_list:
         msg.fatal("No working profiles found")
-        return False
+        sys.exit(1)
     else:
         return profiles_list

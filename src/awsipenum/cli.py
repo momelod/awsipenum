@@ -181,9 +181,9 @@ def main(): # noqa
         if args.format == "json":
             print(render.to_json(list))
         elif args.format == "yaml":
-            print(render.to_yanml(list))
+            print(render.to_yaml(list))
     else:
         if args.format == "json":
             print(render.to_json(filtered_list))
         elif args.format == "yaml":
-            print(render.to_yanml(filtered_list))
+            print(render.to_yaml(filtered_list))

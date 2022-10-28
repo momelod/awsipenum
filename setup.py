@@ -5,8 +5,8 @@ with open('README.md', encoding='UTF-8') as f:
 
 setup(
     name='awsipenum',
-    version='0.2.0',
-    description='List your AWS public IPs',
+    version='1.0.0',
+    description='List your AWS IPs',
     author='Steve Melo',
     author_email='momelod@gmail.com',
     url='https://github.com/momelod/awsipenum',
