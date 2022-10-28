@@ -5,7 +5,7 @@ with open('README.md', encoding='UTF-8') as f:
 
 setup(
     name='awsipenum',
-    version='0.1.1',
+    version='0.1.5',
     description='List your AWS IPs',
     author='Steve Melo',
     author_email='momelod@gmail.com',
@@ -14,10 +14,8 @@ setup(
         'boto3',
         'botocore',
         'ipaddress',
-        'json'
         'requests',
-        'sys',
-        'yaml',
+        'pyaml',
     ],
     packages=find_packages('src'),
     package_dir={'': 'src'},

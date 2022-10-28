@@ -1,6 +1,6 @@
 # AWS IP address Enumerator
 
-Genterate a list of all IP addresses in your AWS account(s).
+Generate a list of all IP addresses in your AWS account(s).
 
 Features:
 * Iterates over all your AWS accounts as defined by `aws configure`.
