@@ -136,3 +136,8 @@ awsipenum -p default --region us-east-1 --no-cloudfront -f yaml
 - 10.0.0.10
 - 1.2.3.4
 ```
+
+Run as a docker container:
+```bash
+docker run --rm --name awsipenum -v ~/.aws:/root/.aws momelod/awsipenum --profile my-named-profile --region us-east-1
+```
