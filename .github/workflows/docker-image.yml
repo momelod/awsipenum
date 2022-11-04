@@ -28,7 +28,7 @@ jobs:
         
     - name: Get version
       run: 
-        echo "::set-output name=VERSION::v$(python3 setup.py --version)"
+        echo "VERSION=v$(python3 setup.py --version) >> $GITHUB_STATE"
           
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag momelod/awsipenum:${{ steps.version.outputs.VERSION }}
+      run: docker build . --file Dockerfile --tag momelod/awsipenum:$(echo "{{ env.VERSION }}")
