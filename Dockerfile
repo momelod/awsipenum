@@ -1,7 +1,9 @@
 FROM python:3.10.8
 
+COPY . .
+
 ENV AWS_DEFAULT_REGION=us-east-1
 
-RUN pip3 install awsipenum --user
+RUN pip3 install .
 
-ENTRYPOINT ["/root/.local/bin/awsipenum"]
+ENTRYPOINT ["/usr/local/bin/awsipenum"]

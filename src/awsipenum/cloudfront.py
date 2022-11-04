@@ -9,7 +9,11 @@ msg.debug = debug
 
 
 def cloudfront_ips(p: str, r: str):
-    session = boto3.session.Session(profile_name=p, region_name=r)
+    if p == "from_environment":
+        session = boto3.session.Session()
+    else:
+        session = boto3.session.Session(profile_name=p, region_name=r)
+
     client = session.client('cloudfront')
     list = []
 

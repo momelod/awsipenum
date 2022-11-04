@@ -3,7 +3,7 @@
 Generate a list of all IP addresses in your AWS account(s).
 
 Features:
-* Iterates over all your AWS accounts as defined by `aws configure`.
+* Iterates over all your AWS accounts as defined by `aws configure` or from environment vars AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION.
 * Limit the enumeration by aws profile(s), region(s), service(s), IP version, public or private IPs.
 * Outputs to either `json` or `yaml` formats.
 * Optionally show metadata (Type, Name) along with IP.
@@ -19,15 +19,10 @@ pip install awsipenum
 If you do not supply a profile or region argument then ALL your profiles and regions will be scanned.
 
 ```
-usage: awsipenum [-h] [-d | --debug | --no-debug]
-                 [-p PROFILE [PROFILE ...]]
-                 [-r REGION [REGION ...]] [-f {json,yaml}]
-                 [--ipv4 | --no-ipv4] [--ipv6 | --no-ipv6]
-                 [--external | --no-external]
-                 [--internal | --no-internal]
-                 [--cloudfront | --no-cloudfront]
-                 [--ec2 | --no-ec2] [--elb | --no-elb]
-                 [--elbv2 | --no-elbv2]
+usage: awsipenum [-h] [-d | --debug | --no-debug] [-p PROFILE [PROFILE ...]] [-r REGION [REGION ...]]
+                 [-f {json,yaml}] [--ipv4 | --no-ipv4] [--ipv6 | --no-ipv6] [--external | --no-external]
+                 [--internal | --no-internal] [--cloudfront | --no-cloudfront] [--ec2 | --no-ec2]
+                 [--elb | --no-elb] [--elbv2 | --no-elbv2] [--rds | --no-rds]
                  [-m | --metadata | --no-metadata]
 
 options:
@@ -43,16 +38,15 @@ options:
   --ipv4, --no-ipv4     enable ipv4 (default: True)
   --ipv6, --no-ipv6     enable ipv6 (default: True)
   --external, --no-external
-                        enable external public ips (default:
-                        True)
+                        enable external public ips (default: True)
   --internal, --no-internal
-                        enable internal private ips (default:
-                        True)
+                        enable internal private ips (default: True)
   --cloudfront, --no-cloudfront
                         enable cloudfront (default: True)
   --ec2, --no-ec2       enable ec2 (default: True)
   --elb, --no-elb       enable elb (default: True)
   --elbv2, --no-elbv2   enable elbv2 (default: True)
+  --rds, --no-rds       enable rds (default: True)
   -m, --metadata, --no-metadata
                         output with metadata (default: False)
 ```
@@ -79,6 +73,8 @@ Validating region access ..
 [default][us-east-1]: Enumerating Classic LoadBalancer IPs ..
 
 [default][us-east-1]: Enumerating Cloudfront Distrobutions ..
+
+[default][us-east-1]: Enumerating RDS IPs ..
 [
     {
         "type": "ec2_instance",
@@ -140,4 +136,6 @@ awsipenum -p default --region us-east-1 --no-cloudfront -f yaml
 Run as a docker container:
 ```bash
 docker run --rm --name awsipenum -v ~/.aws:/root/.aws momelod/awsipenum --profile my-named-profile --region us-east-1
+
+docker run --rm --name awsipenum -e AWS_SECRET_ACCESS_KEY -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION momelod/awsipenum 
 ```

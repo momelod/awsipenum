@@ -6,7 +6,7 @@ from awsipenum import msg
 debug = False
 
 
-def profiles_check(p: list):
+def profiles_check(p: list): # noqa
 
     msg.debug = debug
     msg.info("\n")
@@ -18,9 +18,16 @@ def profiles_check(p: list):
     else:
         profiles_available = boto3.session.Session().available_profiles
 
+    if len(profiles_available) == 0:
+        profiles_available = ["from_environment"]
+
     for p in profiles_available:
         msg.info("[" + p + "]: ")
-        session = boto3.session.Session(profile_name=p)
+
+        if p == "from_environment":
+            session = boto3.session.Session()
+        else:
+            session = boto3.session.Session(profile_name=p)
 
         if session.region_name is None:
             msg.fatal("AWS_DEFAULT_REGION is undefined")

@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, BooleanOptionalAction
-from awsipenum import sts, ec2, render, elbv2, elb, cloudfront
+from awsipenum import sts, ec2, render, elbv2, elb, cloudfront, rds
 import ipaddress as ip
 
 
@@ -78,6 +78,12 @@ def create_parser():
         action=BooleanOptionalAction
     )
     parser.add_argument(
+        '--rds',
+        help='enable rds',
+        default=True,
+        action=BooleanOptionalAction
+    )
+    parser.add_argument(
         '-m', '--metadata',
         help='output with metadata',
         default=False,
@@ -135,6 +141,13 @@ def main(): # noqa
                 cloudfront_ips = cloudfront.cloudfront_ips(p, r)
 
                 for i in cloudfront_ips:
+                    if i not in list:
+                        list.append(i)
+
+            if args.rds:
+                rds_ips = rds.rds_ips(p, r)
+
+                for i in rds_ips:
                     if i not in list:
                         list.append(i)
 
