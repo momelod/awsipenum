@@ -3,11 +3,11 @@
 Generate a list of all IP addresses in your AWS account(s).
 
 Features:
-* Iterates over all your AWS accounts as defined by `aws configure` or from environment vars AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION.
+* Iterates over all your AWS accounts as defined by `aws configure` or from environment vars AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY.
 * Limit the enumeration by aws profile(s), region(s), service(s), IP version, public or private IPs.
 * Outputs to either `json` or `yaml` formats.
 * Optionally show metadata (Type, Name) along with IP.
-* Currently supports `ec2`, `elb`, `elbv2` and `cloudfront`.
+* Currently supports `ec2`, `elb`, `elbv2`, `rds` and `cloudfront`.
 
 
 ## Installation
@@ -137,5 +137,5 @@ Run as a docker container:
 ```bash
 docker run --rm --name awsipenum -v ~/.aws:/root/.aws momelod/awsipenum --profile my-named-profile --region us-east-1
 
-docker run --rm --name awsipenum -e AWS_SECRET_ACCESS_KEY -e AWS_ACCESS_KEY_ID -e AWS_DEFAULT_REGION momelod/awsipenum 
+docker run --rm --name awsipenum -e AWS_SECRET_ACCESS_KEY -e AWS_ACCESS_KEY_ID momelod/awsipenum 
 ```

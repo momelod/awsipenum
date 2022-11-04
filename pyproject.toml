@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "awsipenum"
-version = "0.1.9"
+version = "0.1.10"
 authors = [
   { name="Steve Melo", email="momelod@gmail.com" },
 ]
@@ -16,6 +16,14 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+    'boto3', 
+    'botocore', 
+    'ipaddress', 
+    'requests', 
+    'pyaml'
+]
+dynamic = ["entry-points"]
 
 [project.urls]
 "Repository" = "https://github.com/momelod/awsipenum"
