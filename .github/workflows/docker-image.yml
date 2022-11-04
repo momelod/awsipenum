@@ -60,7 +60,6 @@ jobs:
       run: |
         cat <<EOF > $HOME/.pypirc
         [pypi]
-        repository: https://pypi.python.org/pypi
         username: __token__
         password: ${{ secrets.PYPITOKEN }}
         EOF
