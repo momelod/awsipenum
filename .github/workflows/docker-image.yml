@@ -30,9 +30,15 @@ jobs:
       id: get-version
       run: |
         echo "VERSION=v$(python3 setup.py --version)" >> $GITHUB_ENV
-          
-    - name: Build the Docker image
-      run: |
-        echo "${{ env.VERSION }}"
-        env
-        docker build . --file Dockerfile --tag momelod/awsipenum:${{ env.VERSION }}
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.GITHUBAWSIPENUMACCESSTOKEN }}     
+
+    - name: Build and push
+      uses: docker/build-push-action@v3
+      with:
+        push: true
+        tags: momelod/awsipenum:${{ env.VERSION }}
