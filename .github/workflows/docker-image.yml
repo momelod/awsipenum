@@ -29,12 +29,9 @@ jobs:
     - name: Get version
       id: get-version
       run: |
-        echo "VERSION=v$(python3 setup.py --version) >> $GITHUB_OUTPUT"
+        echo "VERSION=v$(python3 setup.py --version) >> $GITHUB_ENV"
           
     - name: Build the Docker image
       run: |
-        echo "$GITHUB_OUTPUT"
-        cat "$GITHUB_OUTPUT"
-        source "$GITHUB_OUTPUT"
-        echo "Version is $VERSION"
-        docker build . --file Dockerfile --tag momelod/awsipenum:${{ steps.get-version.outputs.VERSION }}
+        echo "${{ env.VERSION }}"
+        docker build . --file Dockerfile --tag momelod/awsipenum:${{ env.VERSION }}
