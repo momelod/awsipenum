@@ -29,7 +29,7 @@ jobs:
     - name: Get version
       id: get-version
       run: |
-        echo "VERSION=v$(python3 setup.py --version) >> $GITHUB_ENV"
+        echo "VERSION=v$(python3 setup.py --version)" >> $GITHUB_ENV
           
     - name: Build the Docker image
       run: |
