@@ -34,4 +34,5 @@ jobs:
     - name: Build the Docker image
       run: |
         echo "${{ env.VERSION }}"
+        env
         docker build . --file Dockerfile --tag momelod/awsipenum:${{ env.VERSION }}
