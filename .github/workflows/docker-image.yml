@@ -1,9 +1,7 @@
-name: Docker Image CI
+name: Release CI
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
     branches: [ "main" ]
 
 jobs:
@@ -23,8 +21,8 @@ jobs:
     - name: Update PATH
       run: echo "$HOME/.local/bin" >> $GITHUB_PATH
         
-    - name: Install setuptools
-      run: pip install setuptools
+    - name: Install build setuptools and twine
+      run: pip install build setuptools twine
         
     - name: Get version
       id: get-version
@@ -37,7 +35,7 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.GITHUBAWSIPENUMACCESSTOKEN }}     
 
-    - name: Build and push
+    - name: Docker build and push
       uses: docker/build-push-action@v3
       with:
         push: true
@@ -53,9 +51,31 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GHTOKEN }}
 
+    - name: Python build
+      if: ${{ steps.check_tag.outputs.exists == 'false' }}
+      run: python3 -m build
+
+    - name: Publish PyPi.org
+      if: ${{ steps.check_tag.outputs.exists == 'false' }}
+      run: |
+        cat <<EOF > $HOME/.pypirc
+        [pypi]
+        repository: https://pypi.python.org/pypi
+        username: __token__
+        password: ${{ secrets.PYPITOKEN }}
+        EOF
+        python3 -m twine upload dist/*
+
     - name: Create and push tag
       if: ${{ steps.check_tag.outputs.exists == 'false' }}
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
         tagging_message: ${{ env.VERSION }}
-        skip_dirty_check: true
+
+    - name: Release version
+      if: ${{ steps.check_tag.outputs.exists == 'false' }}
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ env.VERSION }}
+          name: Release ${{ env.VERSION }}
+          files: dist/*
