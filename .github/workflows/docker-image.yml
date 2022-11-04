@@ -27,8 +27,10 @@ jobs:
       run: pip install setuptools
         
     - name: Get version
-      run: 
-        echo "VERSION=v$(python3 setup.py --version) >> $GITHUB_STATE"
+      id: get-version
+      run: |
+        echo "VERSION=v$(python3 setup.py --version) >> $GITHUB_OUTPUT"
           
     - name: Build the Docker image
-      run: source $GITHUB_STATE && docker build . --file Dockerfile --tag momelod/awsipenum:$VERSION
+      run: |
+        docker build . --file Dockerfile --tag momelod/awsipenum:${{ steps.get-version.outputs.VERSION }}
