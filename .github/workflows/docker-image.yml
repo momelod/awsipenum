@@ -58,3 +58,4 @@ jobs:
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
         tagging_message: ${{ env.VERSION }}
+        skip_dirty_check: true
