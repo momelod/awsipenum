@@ -33,5 +33,6 @@ jobs:
           
     - name: Build the Docker image
       run: |
-        echo "Version is ${{ steps.get-version.outputs.VERSION }}"
+        source "$GITHUB_OUTPUT"
+        echo "Version is $VERSION"
         docker build . --file Dockerfile --tag momelod/awsipenum:${{ steps.get-version.outputs.VERSION }}
