@@ -44,3 +44,17 @@ jobs:
         tags: | 
           momelod/awsipenum:${{ env.VERSION }}
           momelod/awsipenum:latest
+
+    - name: Check if tag already exists
+      uses: mukunku/tag-exists-action@v1.0.0
+      id: check_tag
+      with:
+        tag: ${{ env.VERSION }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GHTOKEN }}
+
+    - name: Create and push tag
+      if: ${{ steps.check_tag.outputs.exists == 'false' }}
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        tagging_message: ${{ env.VERSION }}
