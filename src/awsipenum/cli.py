@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, BooleanOptionalAction
-from awsipenum import sts, ec2, render, elbv2, elb, cloudfront, rds
+from awsipenum import sts, ec2, render, elbv2, elb, cloudfront, rds, elasticache
 import ipaddress as ip
 
 
@@ -89,6 +89,12 @@ def create_parser():
         default=False,
         action=BooleanOptionalAction
     )
+    parser.add_argument(
+        '--elasticache',
+        help='enable elasticache',
+        default=True,
+        action=BooleanOptionalAction
+    )
 
     return parser
 
@@ -150,6 +156,13 @@ def main(): # noqa
                 rds_ips = rds.rds_ips(p, r)
 
                 for i in rds_ips:
+                    if i not in list:
+                        list.append(i)
+
+            if args.elasticache:
+                elasticache_ips = elasticache.elasticache_ips(p, r)
+
+                for i in elasticache_ips:
                     if i not in list:
                         list.append(i)
 
