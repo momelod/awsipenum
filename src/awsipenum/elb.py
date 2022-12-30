@@ -21,14 +21,17 @@ def elb_ips(p: str, r: str): # noqa
     msg.info("[" + p + "]" + "[" + r + "]: ")
 
     try:
-        result = client.describe_load_balancers()
+        paginator = client.get_paginator("describe_load_balancers")
+        paginator_interator = paginator.paginate()
+        result_full = paginator_interator.build_full_result()
+        result = result_full.get('LoadBalancerDescriptions')
     except botocore.errorfactory.ClientError:
         result = False
 
     if result:
         msg.hdr("Enumerating Classic LoadBalancer IPs ..")
 
-        for lb in result['LoadBalancerDescriptions']:
+        for lb in result:
             ip_list = []
             i = finding()
             i.type = "elb_classic"

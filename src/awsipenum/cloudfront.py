@@ -21,14 +21,17 @@ def cloudfront_ips(p: str, r: str):
     msg.info("[" + p + "]" + "[" + r + "]: ")
 
     try:
-        result = client.list_distributions()
+        paginator = client.get_paginator("list_distributions")
+        paginator_interator = paginator.paginate()
+        result_full = paginator_interator.build_full_result()
+        result = result_full.get('DistributionList')
     except botocore.errorfactory.ClientError:
         result = False
 
     if result:
         msg.hdr("Enumerating Cloudfront Distrobutions ..")
 
-        distrobutions = result['DistributionList']
+        distrobutions = result
         if "Items" in distrobutions:
             for distrobution in distrobutions['Items']:
                 ip_list = []

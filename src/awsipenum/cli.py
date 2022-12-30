@@ -112,16 +112,18 @@ def main(): # noqa
         for r in ec2.regions(p, args.region):
 
             if args.ec2:
-                instance_ips = ec2.instance_ips(p, r)
-                elastic_ips = ec2.elastic_ips(p, r)
+                instance_obj = ec2.Instance(p, r)
+                instance_ips = instance_obj.metaData()
+                eip_obj = ec2.elasticIPs(p, r)
+                eip_ips = eip_obj.metaData()
 
                 for i in instance_ips:
-                    if i not in list:
-                        list.append(i)
+                    if instance_ips[i] not in list:
+                        list.append(instance_ips[i])
 
-                for i in elastic_ips:
-                    if i not in list:
-                        list.append(i)
+                for i in eip_ips:
+                    if eip_ips[i] not in list:
+                        list.append(eip_ips[i])
 
             if args.elbv2:
                 elbv2_ips = elbv2.elbv2_ips(p, r)
