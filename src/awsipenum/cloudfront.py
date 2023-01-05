@@ -1,87 +1,116 @@
 import botocore
 import boto3
-import json
-import requests
-from awsipenum import msg
+import ipaddress as ip
+from awsipenum import msg, cli
 
 debug = False
 msg.debug = debug
 
 
-def cloudfront_ips(p: str, r: str):
-    if p == "from_environment":
-        session = boto3.session.Session()
-    else:
-        session = boto3.session.Session(profile_name=p, region_name=r)
+class Distrobution:
+    def __init__(self, aws_profile, aws_region): #noqa
+        self.aws_profile = aws_profile
+        self.aws_region = aws_region
+        self.public_ip_list = []
+        self.private_ip_list = []
+        self.inventory = {}
 
-    client = session.client('cloudfront')
-    list = []
+        if self.aws_profile == "from_environment":
+            session = boto3.session.Session()
+        else:
+            session = boto3.session.Session(
+                profile_name=self.aws_profile,
+                region_name=self.aws_region
+            )
 
-    msg.info("\n")
-    msg.info("[" + p + "]" + "[" + r + "]: ")
+        client = session.client('cloudfront')
 
-    try:
-        paginator = client.get_paginator("list_distributions")
-        paginator_interator = paginator.paginate()
-        result_full = paginator_interator.build_full_result()
-        result = result_full.get('DistributionList')
-    except botocore.errorfactory.ClientError:
-        result = False
+        try:
+            paginator = client.get_paginator("list_distributions")
+            paginator_interator = paginator.paginate()
+            result_full = paginator_interator.build_full_result()
+            result = result_full.get('DistributionList')
+        except botocore.errorfactory.ClientError:
+            result = False
 
-    if result:
         msg.hdr("Enumerating Cloudfront Distrobutions ..")
 
-        distrobutions = result
-        if "Items" in distrobutions:
-            for distrobution in distrobutions['Items']:
-                ip_list = []
-                i = finding()
-                i.type = "cloudfront"
-                i.id = distrobution['Id']
-                i.region = r
-                i.profile = p
-                i.name = distrobution['DomainName']
+        if result:
+            distrobutions = result
+            if "Items" in distrobutions:
+                for distrobution in distrobutions['Items']:
+                    type = "cloudfront"
+                    id = distrobution['Id']
+                    region = self.aws_region
+                    profile = self.aws_profile
+                    name = distrobution['DomainName']
+                    public_ip_list = []
+                    private_ip_list = []
 
-                headers = {"accept": "application/dns-json"}
-                c = "https://cloudflare-dns.com/"
-                q = "dns-query?name="
-                v4 = '&type=A'
-                v6 = '&type=AAAA'
+                a = cli.dnsOverHTTP(name)
 
-                for t in [v4, v6]:
-                    url = c + q + i.name + t
-                    try:
-                        response = requests.get(url, headers=headers)
-                        a = json.loads(response.content)
-                    except Exception as err:
-                        msg.warn(err)
+                for address in a:
 
-                    if a.get(u'Answer'):
-                        for answer in a['Answer']:
-                            ip_list.append(answer['data'])
+                    if ip.ip_address(address).is_private:
+                        private_ip_list.append(address)
+                    else:
+                        public_ip_list.append(address)
 
-                        i.public_ip = ip_list
+                    self.inventory[id] = {
+                        "id": id,
+                        "name": name,
+                        "type": type,
+                        "vpc": "",
+                        "profile": profile,
+                        "region": region,
+                        "public_ip": public_ip_list,
+                        "private_ip": private_ip_list
+                        }
 
-                list.append(i.show())
-    else:
-        msg.warn("RegionDisabledException")
+    def listPublicIpv4(self):
+        public_ip_list = []
+        metadata = self.inventory
 
-    return list
+        for asset in metadata.keys():
+            for public_ip in metadata[asset]["public_ip"]:
+                address = ip.ip_address(public_ip)
+                if address.version == 4:
+                    public_ip_list.append(public_ip)
 
+        return public_ip_list
 
-class finding:
-    def __setitem__(self, key, value):
-        if key in [
-            'type'
-            'id',
-            'public_ip',
-            'name',
-            'region',
-            'profile'
-        ]:
-            self.__dict__[key] = value
-        else:
-            pass
+    def listPrivateIpv4(self):
+        private_ip_list = []
+        metadata = self.inventory
 
-    def show(self):
-        return self.__dict__
+        for asset in metadata.keys():
+            for private_ip in metadata[asset]["private_ip"]:
+                address = ip.ip_address(private_ip)
+                if address.version == 4:
+                    private_ip_list.append(private_ip)
+
+        return private_ip_list
+
+    def listPublicIpv6(self):
+        public_ip_list = []
+        metadata = self.inventory
+
+        for asset in metadata.keys():
+            for public_ip in metadata[asset]["public_ip"]:
+                address = ip.ip_address(public_ip)
+                if address.version == 6:
+                    public_ip_list.append(public_ip)
+
+        return public_ip_list
+
+    def listPrivateIpv6(self):
+        private_ip_list = []
+        metadata = self.inventory
+
+        for asset in metadata.keys():
+            for private_ip in metadata[asset]["private_ip"]:
+                address = ip.ip_address(private_ip)
+                if address.version == 6:
+                    private_ip_list.append(private_ip)
+
+        return private_ip_list

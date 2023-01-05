@@ -63,3 +63,43 @@ def profiles_check(p: list): # noqa
         sys.exit(1)
     else:
         return profiles_list
+
+
+def regions(p: str, r: str):
+    msg.info("\n")
+    msg.hdr("Validating region access ..")
+    list = []
+    region_enabled = []
+
+    if p == "from_environment":
+        session = boto3.session.Session()
+    else:
+        session = boto3.session.Session(profile_name=p)
+
+    if r:
+        list = r
+    else:
+        client = session.client('ec2')
+        regions = client.describe_regions()
+
+        for r in regions['Regions']:
+            list.append(r['RegionName'])
+
+    for region in list:
+        msg.info("[" + p + "]" + "[" + region + "]: ")
+        sts = session.client('sts', region_name=region)
+        try:
+            check = sts.get_caller_identity()
+        except botocore.exceptions.ClientError:
+            check = False
+
+        if check:
+            msg.ok("Region Enabled")
+            if region not in region_enabled:
+                region_enabled.append(region)
+        else:
+            msg.warn("RegionDisabledException")
+
+        msg.info("")
+
+    return region_enabled

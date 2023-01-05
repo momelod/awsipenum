@@ -1,91 +1,233 @@
 import botocore
 import boto3
-import json
-import requests
-from awsipenum import msg
+import ipaddress as ip
+from awsipenum import msg, cli
 
 debug = False
 msg.debug = debug
 
 
-def elb_ips(p: str, r: str): # noqa
-    if p == "from_environment":
-        session = boto3.session.Session()
-    else:
-        session = boto3.session.Session(profile_name=p, region_name=r)
+class Classic:
+    def __init__(self, aws_profile, aws_region): #noqa
+        self.aws_profile = aws_profile
+        self.aws_region = aws_region
+        self.public_ip_list = []
+        self.private_ip_list = []
+        self.inventory = {}
 
-    client = session.client('elb')
-    list = []
+        if self.aws_profile == "from_environment":
+            session = boto3.session.Session()
+        else:
+            session = boto3.session.Session(
+                profile_name=self.aws_profile,
+                region_name=self.aws_region
+            )
 
-    msg.info("\n")
-    msg.info("[" + p + "]" + "[" + r + "]: ")
+        client = session.client('elb')
 
-    try:
-        paginator = client.get_paginator("describe_load_balancers")
-        paginator_interator = paginator.paginate()
-        result_full = paginator_interator.build_full_result()
-        result = result_full.get('LoadBalancerDescriptions')
-    except botocore.errorfactory.ClientError:
-        result = False
+        try:
+            paginator = client.get_paginator("describe_load_balancers")
+            paginator_interator = paginator.paginate()
+            result_full = paginator_interator.build_full_result()
+            result = result_full.get('LoadBalancerDescriptions')
+        except botocore.errorfactory.ClientError:
+            result = False
 
-    if result:
         msg.hdr("Enumerating Classic LoadBalancer IPs ..")
 
-        for lb in result:
-            ip_list = []
-            i = finding()
-            i.type = "elb_classic"
-            i.id = lb['DNSName']
-            i.region = r
-            i.profile = p
-            i.vpc = lb['VPCId']
-            i.name = lb['LoadBalancerName']
+        if result:
+            for lb in result:
+                public_ip_list = []
+                private_ip_list = []
+                type = "elb_classic"
+                id = lb['DNSName']
+                region = self.aws_region
+                profile = self.aws_profile
+                vpc = lb['VPCId']
+                name = lb['LoadBalancerName']
 
-            headers = {"accept": "application/dns-json"}
-            c = "https://cloudflare-dns.com/"
-            q = "dns-query?name="
-            v4 = '&type=A'
-            v6 = '&type=AAAA'
+                a = cli.dnsOverHTTP(id)
 
-            for t in [v4, v6]:
-                url = c + q + i.id + t
-                try:
-                    response = requests.get(url, headers=headers)
-                    a = json.loads(response.content)
-                except Exception as err:
-                    msg.warn(err)
+                for address in a:
 
-                if "Answer" in a:
-                    for answer in a['Answer']:
-                        ip_list.append(answer['data'])
+                    if ip.ip_address(address).is_private:
+                        private_ip_list.append(address)
+                    else:
+                        public_ip_list.append(address)
 
-                    if lb['Scheme'] == 'internal':
-                        i.private_ip = ip_list
+                    self.inventory[id] = {
+                        "id": id,
+                        "name": name,
+                        "type": type,
+                        "vpc": vpc,
+                        "profile": profile,
+                        "region": region,
+                        "public_ip": public_ip_list,
+                        "private_ip": private_ip_list
+                        }
 
-                    elif lb['Scheme'] == 'internet-facing':
-                        i.public_ip = ip_list
+    def listPublicIpv4(self):
+        public_ip_list = []
+        metadata = self.inventory
 
-            list.append(i.show())
-    else:
-        msg.warn("RegionDisabledException")
+        for asset in metadata.keys():
+            for public_ip in metadata[asset]["public_ip"]:
+                address = ip.ip_address(public_ip)
+                if address.version == 4:
+                    public_ip_list.append(public_ip)
 
-    return list
+        return public_ip_list
+
+    def listPrivateIpv4(self):
+        private_ip_list = []
+        metadata = self.inventory
+
+        for asset in metadata.keys():
+            for private_ip in metadata[asset]["private_ip"]:
+                address = ip.ip_address(private_ip)
+                if address.version == 4:
+                    private_ip_list.append(private_ip)
+
+        return private_ip_list
+
+    def listPublicIpv6(self):
+        public_ip_list = []
+        metadata = self.inventory
+
+        for asset in metadata.keys():
+            for public_ip in metadata[asset]["public_ip"]:
+                address = ip.ip_address(public_ip)
+                if address.version == 6:
+                    public_ip_list.append(public_ip)
+
+        return public_ip_list
+
+    def listPrivateIpv6(self):
+        private_ip_list = []
+        metadata = self.inventory
+
+        for asset in metadata.keys():
+            for private_ip in metadata[asset]["private_ip"]:
+                address = ip.ip_address(private_ip)
+                if address.version == 6:
+                    private_ip_list.append(private_ip)
+
+        return private_ip_list
 
 
-class finding:
-    def __setitem__(self, key, value):
-        if key in [
-            'type',
-            'id',
-            'public_ip',
-            'name',
-            'vpc',
-            'region',
-            'profile'
-        ]:
-            self.__dict__[key] = value
+class v2:
+    def __init__(self, aws_profile, aws_region): #noqa
+        self.aws_profile = aws_profile
+        self.aws_region = aws_region
+        self.public_ip_list = []
+        self.private_ip_list = []
+        self.inventory = {}
+
+        if self.aws_profile == "from_environment":
+            session = boto3.session.Session()
         else:
-            pass
+            session = boto3.session.Session(
+                profile_name=self.aws_profile,
+                region_name=self.aws_region
+            )
 
-    def show(self):
-        return self.__dict__
+        client = session.client('elbv2')
+
+        try:
+            paginator = client.get_paginator("describe_load_balancers")
+            paginator_interator = paginator.paginate()
+            result_full = paginator_interator.build_full_result()
+            result = result_full.get('LoadBalancers')
+        except botocore.errorfactory.ClientError:
+            result = False
+
+        msg.info("\n")
+        msg.hdr("Enumerating LoadBalancer v2 IPs ..")
+        msg.info("[" + self.aws_profile + "]" + "[" + self.aws_region + "]")
+
+        if result:
+            msg.ok(" OK")
+            for lb in result:
+                public_ip_list = []
+                private_ip_list = []
+                type = "elb_v2 " + lb['Type']
+                id = lb['LoadBalancerArn']
+                region = self.aws_region
+                profile = self.aws_profile
+                vpc = lb['VpcId']
+                name = lb['LoadBalancerName']
+
+                for az in lb['AvailabilityZones']:
+
+                    for address in az['LoadBalancerAddresses']:
+                        public_ip_list.append(address['IpAddress'])
+
+                a = cli.dnsOverHTTP(lb["DNSName"])
+
+                for address in a:
+
+                    if ip.ip_address(address).is_private:
+                        private_ip_list.append(address)
+                    else:
+                        public_ip_list.append(address)
+
+                    self.inventory[id] = {
+                        "id": id,
+                        "name": name,
+                        "type": type,
+                        "vpc": vpc,
+                        "profile": profile,
+                        "region": region,
+                        "public_ip": public_ip_list,
+                        "private_ip": private_ip_list
+                        }
+        else:
+            msg.ok(" None found")
+
+    def listPublicIpv4(self):
+        public_ip_list = []
+        metadata = self.inventory
+
+        for asset in metadata.keys():
+            for public_ip in metadata[asset]["public_ip"]:
+                address = ip.ip_address(public_ip)
+                if address.version == 4:
+                    public_ip_list.append(public_ip)
+
+        return public_ip_list
+
+    def listPrivateIpv4(self):
+        private_ip_list = []
+        metadata = self.inventory
+
+        for asset in metadata.keys():
+            for private_ip in metadata[asset]["private_ip"]:
+                address = ip.ip_address(private_ip)
+                if address.version == 4:
+                    private_ip_list.append(private_ip)
+
+        return private_ip_list
+
+    def listPublicIpv6(self):
+        public_ip_list = []
+        metadata = self.inventory
+
+        for asset in metadata.keys():
+            for public_ip in metadata[asset]["public_ip"]:
+                address = ip.ip_address(public_ip)
+                if address.version == 6:
+                    public_ip_list.append(public_ip)
+
+        return public_ip_list
+
+    def listPrivateIpv6(self):
+        private_ip_list = []
+        metadata = self.inventory
+
+        for asset in metadata.keys():
+            for private_ip in metadata[asset]["private_ip"]:
+                address = ip.ip_address(private_ip)
+                if address.version == 6:
+                    private_ip_list.append(private_ip)
+
+        return private_ip_list
