@@ -116,7 +116,7 @@ Validating region access ..
 
 Only show public IP v4
 ```bash
-awsipenum -p default --region us-east-1 --no-ipv6 --no-internal
+awsipenum -p default --region us-east-1 --external --ipv4
 [
     "1.2.3.4",
     "1.2.3.5",
@@ -124,13 +124,6 @@ awsipenum -p default --region us-east-1 --no-ipv6 --no-internal
     "1.2.3.7",
     "1.2.3.8"
 ]
-```
-
-Filter out a service
-```bash
-awsipenum -p default --region us-east-1 --no-cloudfront -f yaml
-- 10.0.0.10
-- 1.2.3.4
 ```
 
 Run as a docker container:
