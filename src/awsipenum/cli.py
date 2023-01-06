@@ -94,206 +94,6 @@ def create_parser():
     return parser
 
 
-def main(): # noqa
-    args = create_parser().parse_args()
-
-    # If no single aws service is requested, do them ALL
-    if args.cloudfront + args.ec2 + args.elb + args.elbv2 + args.rds == 0:
-        args.cloudfront = True
-        args.ec2 = True
-        args.elb = True
-        args.elbv2 = True
-        args.rds = True
-
-    # If no ip version is requested, do them ALL
-    if args.ipv4 + args.ipv6 == 0:
-        args.ipv4 = True
-        args.ipv6 = True
-
-    # If no private or public addresses are requested, do them ALL
-    if args.internal + args.external == 0:
-        args.internal = True
-        args.external = True
-
-    list = []
-    public_v4 = []
-    private_v4 = []
-    public_v6 = []
-    private_v6 = []
-    sts.debug = args.debug
-    ec2.debug = args.debug
-
-    for p in sts.profiles_check(args.profile):
-        for r in sts.regions(p, args.region):
-
-            if args.ec2:
-                ec2_inventory = ec2.Instance(p, r)
-                ec2_eips = ec2.elasticIPs(p, r)
-
-                if args.ipv4 and args.internal:
-
-                    for privateIpv4 in ec2_inventory.listPrivateIpv4():
-                        if privateIpv4 not in private_v4:
-                            private_v4.append(privateIpv4)
-
-                    for privateIpv4 in ec2_eips.listPrivateIpv4():
-                        if privateIpv4 not in private_v4:
-                            private_v4.append(privateIpv4)
-
-                if args.ipv4 and args.external:
-
-                    for publicIpv4 in ec2_inventory.listPublicIpv4():
-                        if publicIpv4 not in public_v4:
-                            public_v4.append(publicIpv4)
-
-                    for publicIpv4 in ec2_eips.listPublicIpv4():
-                        if publicIpv4 not in public_v4:
-                            public_v4.append(publicIpv4)
-
-                if args.ipv6 and args.internal:
-
-                    for privateIpv6 in ec2_inventory.listPrivateIpv6():
-                        if privateIpv6 not in private_v6:
-                            private_v6.append(privateIpv6)
-
-                    for privateIpv6 in ec2_eips.listPrivateIpv6():
-                        if privateIpv6 not in private_v6:
-                            private_v6.append(privateIpv6)
-
-                if args.ipv6 and args.external:
-
-                    for publicIpv6 in ec2_inventory.listPublicIpv6():
-                        if publicIpv6 not in public_v6:
-                            public_v6.append(publicIpv6)
-
-                    for publicIpv6 in ec2_eips.listPublicIpv6():
-                        if publicIpv6 not in public_v6:
-                            public_v6.append(publicIpv6)
-
-            if args.elbv2:
-                elb_inventory = elb.v2(p, r)
-
-                if args.ipv4 and args.internal:
-
-                    for privateIpv4 in elb_inventory.listPrivateIpv4():
-                        if privateIpv4 not in private_v4:
-                            private_v4.append(privateIpv4)
-
-                if args.ipv4 and args.external:
-
-                    for publicIpv4 in elb_inventory.listPublicIpv4():
-                        if publicIpv4 not in public_v4:
-                            public_v4.append(publicIpv4)
-
-                if args.ipv6 and args.internal:
-
-                    for privateIpv6 in elb_inventory.listPrivateIpv6():
-                        if privateIpv6 not in private_v6:
-                            private_v6.append(privateIpv6)
-
-                if args.ipv6 and args.external:
-
-                    for publicIpv6 in elb_inventory.listPublicIpv6():
-                        if publicIpv6 not in public_v6:
-                            public_v6.append(publicIpv6)
-
-            if args.elb:
-                elb_inventory = elb.Classic(p, r)
-
-                if args.ipv4 and args.internal:
-
-                    for privateIpv4 in elb_inventory.listPrivateIpv4():
-                        if privateIpv4 not in private_v4:
-                            private_v4.append(privateIpv4)
-
-                if args.ipv4 and args.external:
-
-                    for publicIpv4 in elb_inventory.listPublicIpv4():
-                        if publicIpv4 not in public_v4:
-                            public_v4.append(publicIpv4)
-
-                if args.ipv6 and args.internal:
-
-                    for privateIpv6 in elb_inventory.listPrivateIpv6():
-                        if privateIpv6 not in private_v6:
-                            private_v6.append(privateIpv6)
-
-                if args.ipv6 and args.external:
-
-                    for publicIpv6 in elb_inventory.listPublicIpv6():
-                        if publicIpv6 not in public_v6:
-                            public_v6.append(publicIpv6)
-
-            if args.cloudfront:
-                cf_distrobutions = cloudfront.Distrobution(p, r)
-
-                if args.ipv4 and args.internal:
-
-                    for privateIpv4 in cf_distrobutions.listPrivateIpv4():
-                        if privateIpv4 not in private_v4:
-                            private_v4.append(privateIpv4)
-
-                if args.ipv4 and args.external:
-
-                    for publicIpv4 in cf_distrobutions.listPublicIpv4():
-                        if publicIpv4 not in public_v4:
-                            public_v4.append(publicIpv4)
-
-                if args.ipv6 and args.internal:
-
-                    for privateIpv6 in cf_distrobutions.listPrivateIpv6():
-                        if privateIpv6 not in private_v6:
-                            private_v6.append(privateIpv6)
-
-                if args.ipv6 and args.external:
-
-                    for publicIpv6 in cf_distrobutions.listPublicIpv6():
-                        if publicIpv6 not in public_v6:
-                            public_v6.append(publicIpv6)
-
-            if args.rds:
-                rds_inventory = rds.Instance(p, r)
-
-                if args.ipv4 and args.internal:
-
-                    for privateIpv4 in rds_inventory.listPrivateIpv4():
-                        if privateIpv4 not in private_v4:
-                            private_v4.append(privateIpv4)
-
-                if args.ipv4 and args.external:
-
-                    for publicIpv4 in rds_inventory.listPublicIpv4():
-                        if publicIpv4 not in public_v4:
-                            public_v4.append(publicIpv4)
-
-                if args.ipv6 and args.internal:
-
-                    for privateIpv6 in rds_inventory.listPrivateIpv6():
-                        if privateIpv6 not in private_v6:
-                            private_v6.append(privateIpv6)
-
-                if args.ipv6 and args.external:
-
-                    for publicIpv6 in rds_inventory.listPublicIpv6():
-                        if publicIpv6 not in public_v6:
-                            public_v6.append(publicIpv6)
-
-    if args.metadata:
-        if args.format == "json":
-            print(render.to_json(list))
-        elif args.format == "yaml":
-            print(render.to_yaml(list))
-    else:
-        if args.format == "json":
-            print(render.to_json(
-                private_v4 + private_v6 + public_v4 + public_v6)
-            )
-        elif args.format == "yaml":
-            print(render.to_yaml(
-                private_v4 + private_v6 + public_v4 + public_v6)
-            )
-
-
 def dnsOverHTTP(fqdn: str):
     """
     function to resolve dns name to ip address usiing Cloudflare's
@@ -320,4 +120,123 @@ def dnsOverHTTP(fqdn: str):
                 if each not in list:
                     list.append(each)
 
+    list.sort()
     return list
+
+
+def set_defaults(args):
+    # If no single aws service is requested, do them ALL
+    if args.cloudfront + args.ec2 + args.elb + args.elbv2 + args.rds == 0:
+        args.cloudfront = True
+        args.ec2 = True
+        args.elb = True
+        args.elbv2 = True
+        args.rds = True
+
+    # If no ip version is requested, do them ALL
+    if args.ipv4 + args.ipv6 == 0:
+        args.ipv4 = True
+        args.ipv6 = True
+
+    # If no private or public addresses are requested, do them ALL
+    if args.internal + args.external == 0:
+        args.internal = True
+        args.external = True
+
+    return args
+
+
+def filter(inventory: list, args): # noqa
+    list = []
+
+    if args.metadata:
+        # Private IPv4 metadata
+        for md in inventory.metaPrivateIpv4():
+            if md not in list:
+                list.append(md)
+
+        # Public IPv4 metadata
+        for md in inventory.metaPublicIpv4():
+            if md not in list:
+                list.append(md)
+
+        # Private IPv6 metadata
+        for md in inventory.metaPrivateIpv6():
+            if md not in list:
+                list.append(md)
+
+        # PublicIPv6 metadata
+        for md in inventory.metaPublicIpv6():
+            if md not in list:
+                list.append(md)
+
+    else:
+        # Private IPv4 address only
+        if args.ipv4 and args.internal:
+            for privateIpv4 in inventory.listPrivateIpv4():
+                if privateIpv4 not in list:
+                    list.append(privateIpv4)
+
+        # Public IPv4 address only
+        if args.ipv4 and args.external:
+            for publicIpv4 in inventory.listPublicIpv4():
+                if publicIpv4 not in list:
+                    list.append(publicIpv4)
+
+        # Private IPv6 address only
+        if args.ipv6 and args.internal:
+            for privateIpv6 in inventory.listPrivateIpv6():
+                if privateIpv6 not in list:
+                    list.append(privateIpv6)
+
+        # Public IPv6 address only
+        if args.ipv6 and args.external:
+            for publicIpv6 in inventory.listPublicIpv6():
+                if publicIpv6 not in list:
+                    list.append(publicIpv6)
+
+    return list
+
+
+def main(): # noqa
+    args = set_defaults(create_parser().parse_args())
+
+    output = []
+    sts.debug = args.debug
+    ec2.debug = args.debug
+
+    for p in sts.profiles_check(args.profile):
+        for r in sts.regions(p, args.region):
+            if args.ec2:
+                item = filter(ec2.Instance(p, r), args)
+                if item != []:
+                    output.append(item)
+
+                item = filter(ec2.elasticIPs(p, r), args)
+                if item != []:
+                    output.append(item)
+
+            if args.elbv2:
+                item = filter(elb.v2(p, r), args)
+                if item != []:
+                    output.append(item)
+
+            if args.elb:
+                item = filter(elb.Classic(p, r), args)
+                if item != []:
+                    output.append(item)
+
+            if args.cloudfront:
+                item = filter(cloudfront.Distrobution(p, r), args)
+                if item != []:
+                    output.append(item)
+
+            if args.rds:
+                item = filter(rds.Instance(p, r), args)
+                if item != []:
+                    output.append(item)
+
+    if args.format == "json":
+        print(render.to_json(output))
+    elif args.format == "yaml":
+        print(render.to_yaml(output))

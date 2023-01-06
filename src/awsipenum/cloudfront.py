@@ -33,9 +33,12 @@ class Distrobution:
         except botocore.errorfactory.ClientError:
             result = False
 
+        msg.info("\n")
         msg.hdr("Enumerating Cloudfront Distrobutions ..")
+        msg.info("[" + self.aws_profile + "]" + "[" + self.aws_region + "]")
 
         if result:
+            msg.ok(" Found\n")
             distrobutions = result
             if "Items" in distrobutions:
                 for distrobution in distrobutions['Items']:
@@ -66,6 +69,56 @@ class Distrobution:
                         "public_ip": public_ip_list,
                         "private_ip": private_ip_list
                         }
+            else:
+                msg.ko(" None found\n")
+
+    def metaPublicIpv4(self):
+        public_ip_list = []
+        metadata = self.inventory
+
+        for asset in metadata.keys():
+            for public_ip in metadata[asset]["public_ip"]:
+                address = ip.ip_address(public_ip)
+                if address.version == 4:
+                    public_ip_list.append(metadata[asset])
+
+        return public_ip_list
+
+    def metaPrivateIpv4(self):
+        private_ip_list = []
+        metadata = self.inventory
+
+        for asset in metadata.keys():
+            for private_ip in metadata[asset]["private_ip"]:
+                address = ip.ip_address(private_ip)
+                if address.version == 4:
+                    private_ip_list.append(metadata[asset])
+
+        return private_ip_list
+
+    def metaPublicIpv6(self):
+        public_ip_list = []
+        metadata = self.inventory
+
+        for asset in metadata.keys():
+            for public_ip in metadata[asset]["public_ip"]:
+                address = ip.ip_address(public_ip)
+                if address.version == 6:
+                    public_ip_list.append(metadata[asset])
+
+        return public_ip_list
+
+    def metaPrivateIpv6(self):
+        private_ip_list = []
+        metadata = self.inventory
+
+        for asset in metadata.keys():
+            for private_ip in metadata[asset]["private_ip"]:
+                address = ip.ip_address(private_ip)
+                if address.version == 6:
+                    private_ip_list.append(metadata[asset])
+
+        return private_ip_list
 
     def listPublicIpv4(self):
         public_ip_list = []
